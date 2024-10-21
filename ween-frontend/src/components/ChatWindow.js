@@ -1,4 +1,4 @@
-// components/ChatWindow.js
+// src/components/ChatWindow.js
 import React, { useState } from 'react';
 import ChatBox from './ChatBox';
 import Message from './Message';
@@ -18,8 +18,8 @@ function ChatWindow() {
   };
 
   return (
-    <div className="chat-window">
-      <div className="messages">
+    <div className="chat-window w-full max-w-4xl lg:max-w-7xl bg-white shadow-lg rounded-lg p-6 mt-8">
+      <div className="messages max-h-96 overflow-y-auto mb-4">
         {messages.map((msg, index) => (
           <Message key={index} text={msg.text} sender={msg.sender} />
         ))}
