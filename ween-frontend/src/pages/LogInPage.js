@@ -1,14 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Supabase client setup
-const supabase = createClient(
-  "https://imqngudzgrokpfrmyvat.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltcW5ndWR6Z3Jva3Bmcm15dmF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzAzOTkzMjcsImV4cCI6MjA0NTk3NTMyN30.hX6JbRjTbTEQUrnhdxNBy-wHQijbOQLO9fPVztXCjEo"
-);
+import supabase from '../supabaseClient'; // Import the singleton client
 
 function Login() {
   const navigate = useNavigate();
@@ -36,7 +30,9 @@ function Login() {
 
     // Cleanup listener on unmount to prevent memory leaks
     return () => {
-      authListener.subscription.unsubscribe();
+      if (authListener?.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, [navigate]);
 
