@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Typewriter from "typewriter-effect"; // Import the Typewriter package
 import { getUserLocation, getNearbyRestaurants } from "../utils/googleMaps";
 import { fetchChatbotResponse } from "../utils/openAIchat"; // Use the OpenAI helper function
 import supabase from "../supabaseClient";
@@ -34,8 +35,6 @@ function Success() {
 
   const fetchRestaurantSuggestions = async () => {
     try {
-      setIsLoading(true);
-
       const location = await getUserLocation();
       const restaurants = await getNearbyRestaurants(location);
 
@@ -49,22 +48,21 @@ function Success() {
 
       const botResponse = await fetchChatbotResponse(restaurantList);
 
-      const formattedResponse = restaurantList
-        .map((restaurant, index) => {
-          const description = botResponse.split("\n\n")[index] || "";
-          return `🍴 **${restaurant.name}** (${restaurant.rating} ⭐): ${description}`;
-        })
-        .join("\n\n");
+      // Split and send each restaurant description as a separate message
+      restaurantList.forEach((restaurant, index) => {
+        const description = botResponse.split("\n\n")[index] || "";
+        const formattedMessage = `🍽️ **${restaurant.name}** (${restaurant.rating} ⭐): ${description}`;
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: formattedResponse },
-      ]);
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", text: formattedMessage, typewriter: true },
+        ]);
+      });
     } catch (error) {
       console.error("Error fetching restaurant suggestions:", error);
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "Sorry, I couldn’t fetch restaurant suggestions right now." },
+        { sender: "bot", text: "Sorry, I couldn’t fetch restaurant suggestions right now.", typewriter: false },
       ]);
     } finally {
       setIsLoading(false);
@@ -75,8 +73,17 @@ function Success() {
     if (input.trim()) {
       const userMessage = { sender: "user", text: input };
       setMessages((prev) => [...prev, userMessage]);
+
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", text: "Thinking...", typewriter: true, speed: 80 },
+        ]);
+      }, 500); // "Thinking..." message sent immediately after a short delay.
+
       setInput("");
-      fetchRestaurantSuggestions();
+      setIsLoading(true);
+      setTimeout(fetchRestaurantSuggestions, 1000); // Fetch suggestions after "Thinking..." appears.
     }
   };
 
@@ -109,20 +116,34 @@ function Success() {
                 message.sender === "user" ? "text-right" : "text-left"
               }`}
             >
-              <p
+              <div
                 className={`inline-block px-4 py-2 rounded-md text-base ${
                   message.sender === "user"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-800"
                 }`}
               >
-                {message.text.split("\n").map((line, i) => (
-                  <span key={i}>
-                    {line}
-                    <br />
-                  </span>
-                ))}
-              </p>
+                {message.typewriter ? (
+                  <Typewriter
+                    onInit={(typewriter) => {
+                      typewriter
+                        .typeString(message.text)
+                        .pauseFor(500)
+                        .start();
+                    }}
+                    options={{
+                      delay: message.speed || 3, // Faster speed for main messages, slower for "Thinking..."
+                    }}
+                  />
+                ) : (
+                  message.text.split("\n").map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      <br />
+                    </span>
+                  ))
+                )}
+              </div>
             </div>
           ))}
         </div>
