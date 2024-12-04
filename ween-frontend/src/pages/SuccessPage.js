@@ -82,15 +82,15 @@ function Success() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-100 to-blue-200 p-6">
-      {/* Slightly larger header */}
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6 mb-6 flex flex-col items-center">
-        <h1 className="text-2xl font-bold text-gray-700 mb-3">Success</h1>
+      {/* Header Section */}
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-4 mb-6 flex flex-col items-center">
+        <h1 className="text-xl font-bold text-gray-700 mb-3">Success</h1>
         {user && (
           <div className="text-center">
-            <p className="text-md text-gray-600 mb-3">Welcome, {user.email}</p>
+            <p className="text-sm text-gray-600 mb-3">Welcome, {user.email}</p>
             <button
               onClick={signOutUser}
-              className="bg-red-500 text-white py-2 px-6 rounded hover:bg-red-600 transition text-md"
+              className="bg-red-500 text-white py-1 px-4 rounded hover:bg-red-600 transition text-sm"
             >
               Logout
             </button>
@@ -98,10 +98,10 @@ function Success() {
         )}
       </div>
 
-      {/* Chat area with increased size */}
+      {/* Chat Section */}
       <div className="w-full max-w-5xl bg-white rounded-lg shadow-lg p-6 flex flex-col h-[85vh]">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Chat with Ween AI</h2>
-        <div className="flex-grow overflow-y-auto border border-gray-300 rounded p-6 mb-4 bg-gray-50">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Chat with Ween AI</h2>
+        <div className="flex-grow overflow-y-auto border border-gray-300 rounded p-4 mb-4 bg-gray-50">
           {messages.map((message, index) => (
             <div
               key={index}
@@ -110,7 +110,7 @@ function Success() {
               }`}
             >
               <p
-                className={`inline-block px-6 py-3 rounded-md text-lg ${
+                className={`inline-block px-4 py-2 rounded-md text-base ${
                   message.sender === "user"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-800"
@@ -132,11 +132,11 @@ function Success() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-grow border border-gray-300 rounded px-4 py-3 text-lg"
+            className="flex-grow border border-gray-300 rounded px-4 py-2 text-base"
           />
           <button
             onClick={handleSendMessage}
-            className="ml-4 bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition text-lg"
+            className="ml-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition text-base"
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : "Send"}
