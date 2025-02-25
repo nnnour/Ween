@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Typewriter from "typewriter-effect"; // Import the Typewriter package
+import Typewriter from "typewriter-effect";
 import { getUserLocation, getNearbyRestaurants } from "../utils/googleMaps";
-import { fetchChatbotResponse } from "../utils/openAIchat"; // Use the OpenAI helper function
+import { fetchChatbotResponse } from "../utils/openAIchat";
 import supabase from "../supabaseClient";
 
 function Success() {
@@ -10,6 +10,12 @@ function Success() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userPreferences, setUserPreferences] = useState({
+    cuisine: null,
+    priceRange: null,
+    distance: null,
+  });
+  const [restaurants, setRestaurants] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +28,15 @@ function Success() {
       }
     };
     fetchUser();
+
+    // Add a welcome message when the chat loads
+    setMessages([
+      {
+        sender: "bot",
+        text: "Hey there! 👋 I'm Ween, your AI restaurant assistant. 🍽️ Tell me what you're craving, and I'll find great places nearby! 📍 I can also help with details like hours ⏰, reviews ⭐, and menus 📖. What are you in the mood for today? 😋",
+        typewriter: true,
+      },
+    ]);
   }, [navigate]);
 
   const signOutUser = async () => {
@@ -33,31 +48,36 @@ function Success() {
     }
   };
 
-  const fetchRestaurantSuggestions = async () => {
+  const fetchRestaurantSuggestions = async (userInput) => {
     try {
       const location = await getUserLocation();
       const restaurants = await getNearbyRestaurants(location);
+      setRestaurants(restaurants);
 
-      const restaurantList = restaurants.slice(0, 5).map((r) => ({
-        name: r.name,
-        rating: r.rating || "N/A",
-        vicinity: r.vicinity,
-        types: r.types?.join(", ") || "Various cuisines",
-        distance: `${Math.round(r.distance / 1000)} km`,
-      }));
-
-      const botResponse = await fetchChatbotResponse(restaurantList);
-
-      // Split and send each restaurant description as a separate message
-      restaurantList.forEach((restaurant, index) => {
-        const description = botResponse.split("\n\n")[index] || "";
-        const formattedMessage = `🍽️ **${restaurant.name}** (${restaurant.rating} ⭐): ${description}`;
-
-        setMessages((prev) => [
-          ...prev,
-          { sender: "bot", text: formattedMessage, typewriter: true },
-        ]);
+      // Filter restaurants based on user preferences
+      const filteredRestaurants = restaurants.filter((restaurant) => {
+        const matchesCuisine = userPreferences.cuisine
+          ? restaurant.types?.includes(userPreferences.cuisine)
+          : true;
+        const matchesPrice = userPreferences.priceRange
+          ? restaurant.price_level === userPreferences.priceRange
+          : true;
+        const matchesDistance = userPreferences.distance
+          ? restaurant.distance <= userPreferences.distance
+          : true;
+        return matchesCuisine && matchesPrice && matchesDistance;
       });
+
+      const botResponse = await fetchChatbotResponse({
+        userInput,
+        restaurants: filteredRestaurants,
+        preferences: userPreferences,
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: botResponse, typewriter: true },
+      ]);
     } catch (error) {
       console.error("Error fetching restaurant suggestions:", error);
       setMessages((prev) => [
@@ -79,11 +99,11 @@ function Success() {
           ...prev,
           { sender: "bot", text: "Thinking...", typewriter: true, speed: 80 },
         ]);
-      }, 500); // "Thinking..." message sent immediately after a short delay.
+      }, 500);
 
       setInput("");
       setIsLoading(true);
-      setTimeout(fetchRestaurantSuggestions, 1000); // Fetch suggestions after "Thinking..." appears.
+      setTimeout(() => fetchRestaurantSuggestions(input), 1000);
     }
   };
 
@@ -112,9 +132,7 @@ function Success() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`mb-4 ${
-                message.sender === "user" ? "text-right" : "text-left"
-              }`}
+              className={`mb-4 ${message.sender === "user" ? "text-right" : "text-left"}`}
             >
               <div
                 className={`inline-block px-4 py-2 rounded-md text-base ${
@@ -132,7 +150,7 @@ function Success() {
                         .start();
                     }}
                     options={{
-                      delay: message.speed || 3, // Faster speed for main messages, slower for "Thinking..."
+                      delay: message.speed || 3,
                     }}
                   />
                 ) : (

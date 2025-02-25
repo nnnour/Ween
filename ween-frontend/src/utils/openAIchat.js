@@ -1,50 +1,35 @@
 import axios from "axios";
 
-// Get the OpenAI API Key from environment variables
 const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
-/**
- * Fetch chatbot response from OpenAI API
- * @param {Array} restaurantList - List of restaurant names and descriptions.
- * @returns {string} - Generated text with restaurant descriptions.
- */
-export const fetchChatbotResponse = async (restaurantList) => {
-  const prompt = `Provide a fun description of the following restaurants:
-  ${restaurantList.map((r) => `- ${r.name}: ${r.description}`).join("\n")}`;
+export const fetchChatbotResponse = async ({ userInput, restaurants, preferences }) => {
+  const prompt = `You are a helpful assistant that suggests restaurants based on user preferences. The user has asked: "${userInput}". Here are some nearby restaurants: ${restaurants
+    .map((r) => `- ${r.name}: ${r.vicinity}, Rating: ${r.rating}, Types: ${r.types?.join(", ")}`)
+    .join("\n")}. The user's preferences are: Cuisine - ${preferences.cuisine || "Any"}, Price Range - ${preferences.priceRange || "Any"}, Distance - ${preferences.distance || "Any"}. Provide a helpful response. Format the response with clear paragraphs and bullet points.`;
 
-  const maxRetries = 3; // Maximum number of retries
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const retryDelay = 1000 * Math.pow(2, attempt - 1); // Calculate retry delay (1s, 2s, 4s, etc.)
-    try {
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-3.5-turbo",
-          messages: [
-            { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: prompt },
-          ],
-          max_tokens: 300, // Adjust based on output length
-          temperature: 0.8, // Adjust creativity
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: "You are a helpful assistant that suggests restaurants. Format responses with clear paragraphs and bullet points." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 300,
+        temperature: 0.8,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-          },
-        }
-      );
-
-      return response.data.choices[0].message.content; // Return the response text
-    } catch (error) {
-      if (error.response && error.response.status === 429 && attempt < maxRetries) {
-        console.warn(`Rate limit hit. Retrying in ${retryDelay / 1000}s...`);
-        await new Promise((resolve) => setTimeout(resolve, retryDelay)); // Wait before retrying
-      } else {
-        console.error("Error fetching chatbot response from OpenAI:", error);
-        throw new Error("Failed to fetch chatbot response.");
       }
-    }
+    );
+
+    return response.data.choices[0].message.content;
+  } catch (error) {
+    console.error("Error fetching chatbot response:", error);
+    return "Sorry, I couldn’t process your request. Please try again.";
   }
 };
