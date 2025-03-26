@@ -39,5 +39,5 @@ Ween isn’t just another chatbot—it’s your personal foodie guide! 🍔💬 
 3. Get personalized, emoji-packed recommendations for your next meal adventure! 🍴🥳
 
 ---
-
+ 
 Enjoy exploring food with Ween! 🌟🍕
