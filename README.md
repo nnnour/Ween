@@ -1,5 +1,9 @@
 # 🍴 **Ween**: Your AI Foodie Friend! 🤖🍕🌮
 
+![Ween Demo](weengif.gif)
+
+🎥 [**Watch Full Demo Video on Loom**](https://www.loom.com/share/129ee352b8374a1dbfecb91cb4d247e5)
+
 Welcome to **Ween**, your trusty AI-powered assistant for finding the best eats around! 🥗✨ Whether you’re craving a cheesy pizza, a juicy burger, or a gourmet treat, Ween has your back with tailored restaurant suggestions and fun, engaging descriptions. 
 
 ---
